@@ -1,43 +1,29 @@
 {
-  "name": "grunt-cache-bust",
-  "description": "Bust static assets from the cache using content hashing",
-  "version": "1.7.0",
-  "author": "Ben Holland <hi@benholland.me>",
+  "name": "grunt-hash-query-string-cache-bust",
+  "version": "1.0.0",
+  "description": "Add or Replace query strings containing the hash of assets - Bust static assets from the cache using content hashing forked from git://github.com/hollandben/grunt-cache-bust.git Ben Holland <hi@benholland.me>",
+  "main": "Gruntfile.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "tap test/*.js"
+  },
   "repository": {
     "type": "git",
-    "url": "git://github.com/hollandben/grunt-cache-bust.git"
-  },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/hollandben/grunt-cache-bust/blob/master/license"
-    }
-  ],
-  "engines": {
-    "node": ">=0.10.0"
-  },
-  "scripts": {
-    "test": "grunt test"
-  },
-  "devDependencies": {
-    "grunt": "^1.0.3",
-    "grunt-contrib-clean": "^1.1.0",
-    "grunt-contrib-copy": "^1.0.0",
-    "grunt-contrib-jshint": "^1.1.0",
-    "grunt-contrib-nodeunit": "^2.0.0",
-    "grunt-contrib-watch": "^1.1.0"
-  },
-  "peerDependencies": {
-    "grunt": ">=0.4.0"
+    "url": "git+https://github.com/richardtversteeg/grunt-cache-bust.git"
   },
   "keywords": [
-    "grunt",
-    "grunt plugin",
-    "cache",
-    "bust",
-    "bust assets"
+    "queryString",
+    "Cache",
+    "Bust"
   ],
-  "dependencies": {
-    "fs-extra": "^6.0.1"
-  }
+  "author": "Richard Versteeg <richard@merlinda.ca>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/richardtversteeg/grunt-cache-bust/issues"
+  },
+  "homepage": "https://github.com/richardtversteeg/grunt-cache-bust#readme"
 }
