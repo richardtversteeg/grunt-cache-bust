@@ -17,6 +17,7 @@ var DEFAULT_OPTIONS = {
     length: 16,
     separator: '.',
     queryString: false,
+    removeOldQueryString : false,
     outputDir: '',
     clearOutputDir: false,
     urlPrefixes: []
@@ -134,6 +135,14 @@ module.exports = function(grunt) {
                         }
                         replace.push([dir + originalFilename, dir + hashedFilename]);
                     }
+                }
+                if (opts.removeOldQueryString) {
+                    _.each(replace, function (r) {
+                        var original = r[0];
+                        _.each(replaceEnclosedBy, function (reb) {
+                            markup = markup.split(new RegExp(reb[0] + original + "[\?]+[0-9A-Fa-f]+" + reb[1])).join(reb[0] + original + reb[1]);
+                        });
+                    });
                 }
                 _.each(replace, function(r) {
                     var original = r[0];
