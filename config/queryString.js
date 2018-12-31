@@ -1,13 +1,14 @@
 module.exports = {
     options: {
         assets: ['**/*.{css,jpg}'],
-        baseDir: 'tmp/queryString',
+        baseDir: 'tests/queryString',
+        createCopies: false,
         queryString: true,
-        hash: '123456789'
+        removeOldQueryString : true,
     },
     files: [{
         expand: true,
-        cwd: 'tmp/queryString',
+        cwd: 'tests/queryString',
         src: ['css/*.css', '*.html']
     }]
 };
