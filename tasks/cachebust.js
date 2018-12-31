@@ -1,7 +1,5 @@
 'use strict';
 
-var fs = require('fs-extra');
-var url = require('url');
 var path = require('path');
 var crypto = require('crypto');
 var _ = require('grunt').util._;
@@ -9,24 +7,12 @@ var _ = require('grunt').util._;
 var DEFAULT_OPTIONS = {
     algorithm: 'md5',
     baseDir: './',
-    createCopies: true,
-    deleteOriginals: false,
     encoding: 'utf8',
-    jsonOutput: false,
-    jsonOutputFilename: 'grunt-cache-bust.json',
     length: 16,
-    separator: '.',
-    queryString: false,
-    removeOldQueryString : false,
-    outputDir: '',
-    clearOutputDir: false,
-    urlPrefixes: []
 };
 
 module.exports = function(grunt) {
-    var isUsingQueryString = function(opts) {
-        return opts.queryString;
-    };
+
     grunt.registerMultiTask('cacheBust', 'Bust static assets from the cache using content hashing', function() {
         var opts = this.options(DEFAULT_OPTIONS);
         if( opts.baseDir.substr(-1) !== '/' ) {
@@ -38,11 +24,6 @@ module.exports = function(grunt) {
             filter: 'isFile'
         };
 
-        //clear output dir if it was set
-        if (opts.clearOutputDir && opts.outputDir.length > 0) {
-            fs.removeSync(path.resolve((discoveryOpts.cwd ? discoveryOpts.cwd + '/' +opts.outputDir : opts.outputDir)));
-        }
-
         // Generate an asset map
         var assetMap = grunt.file
             .expand(discoveryOpts, opts.assets)
@@ -51,11 +32,6 @@ module.exports = function(grunt) {
             .reduce(hashFile, {});
 
         grunt.verbose.writeln('Assets found:', JSON.stringify(assetMap, null, 2));
-
-        // Write out assetMap
-        if (opts.jsonOutput === true) {
-            grunt.file.write(path.resolve(opts.baseDir, opts.jsonOutputFilename), JSON.stringify(assetMap));
-        }
 
         // don't just split on the filename, if the filename = 'app.css' it will replace
         // all app.css references, even to files in other dirs
@@ -79,24 +55,7 @@ module.exports = function(grunt) {
             [' ', ' ']
         ];
 
-        // add urlPrefixes to enclosing scenarios
-        if (opts.urlPrefixes && Array.isArray(opts.urlPrefixes) && opts.urlPrefixes.length > 0) {
-            opts.urlPrefixes.forEach(function(urlPrefix) {
-                replaceEnclosedBy.push([urlPrefix, '"']);
-                replaceEnclosedBy.push([urlPrefix, "'"]);
-                replaceEnclosedBy.push([urlPrefix, ")"]);
-                replaceEnclosedBy.push([urlPrefix, ">"]);
-                replaceEnclosedBy.push([urlPrefix, " "]);
-            });
-        }
-        // don't replace references that are already cache busted
-        if (!isUsingQueryString(opts)) {
-            replaceEnclosedBy = replaceEnclosedBy.concat(replaceEnclosedBy.map(function(reb) {
-                return [reb[0], '?'];
-            }));
-        }
-
-        // Go through each source file and replace them with busted file if available
+       // Go through each source file and replace them with busted file if available
         var map = opts.queryString ? {} : assetMap;
         var files = getFilesToBeRenamed(this.files, map, opts.baseDir);
         files.forEach(replaceInFile);
@@ -136,14 +95,14 @@ module.exports = function(grunt) {
                         replace.push([dir + originalFilename, dir + hashedFilename]);
                     }
                 }
-                if (opts.removeOldQueryString) {
+                //remove old query string
                     _.each(replace, function (r) {
                         var original = r[0];
                         _.each(replaceEnclosedBy, function (reb) {
                             markup = markup.split(new RegExp(reb[0] + original + "[\?]+[0-9A-Fa-f]+" + reb[1])).join(reb[0] + original + reb[1]);
                         });
                     });
-                }
+
                 _.each(replace, function(r) {
                     var original = r[0];
                     var hashed = r[1];
@@ -161,17 +120,7 @@ module.exports = function(grunt) {
             var hash = generateFileHash(grunt.file.read(absPath, {
                 encoding: null
             }));
-            var newFilename = addFileHash(file, hash, opts.separator);
-
-            if (!opts.queryString) {
-                if (opts.createCopies) {
-                    grunt.file.copy(absPath, path.resolve(opts.baseDir, newFilename));
-                }
-
-                if (opts.deleteOriginals) {
-                    grunt.file.delete(absPath);
-                }
-            }
+            var newFilename = addFileHash(file, hash);
 
             obj[file] = newFilename;
 
@@ -182,16 +131,8 @@ module.exports = function(grunt) {
             return opts.hash || crypto.createHash(opts.algorithm).update(data, opts.encoding).digest('hex').substring(0, opts.length);
         }
 
-        function addFileHash(str, hash, separator) {
-            if (opts.queryString) {
-                return str + '?' + hash;
-            } else {
-                var parsed = url.parse(str);
-                var pathToFile = opts.outputDir.length > 0 ? path.join(opts.outputDir, parsed.pathname.replace(/^.*[\\\/]/, '')) : parsed.pathname;
-                var ext = path.extname(parsed.pathname);
-
-                return (parsed.hostname ? parsed.protocol + parsed.hostname : '') + pathToFile.replace(ext, '') + separator + hash + ext;
-            }
+        function addFileHash(str, hash) {
+           return str + '?' + hash;
         }
 
         function getFilesToBeRenamed(files, assetMap, baseDir) {
@@ -228,12 +169,6 @@ module.exports = function(grunt) {
                 .expand(originalConfig, originalConfig.src)
                 .map(function(file) {
 
-                    // if the file is hashed, then the hashed file should be
-                    // used instead of the original for replacement.  This will
-                    // only be the case if an outputDir is being used.
-                    if (!opts.queryString && opts.outputDir && _.has(assetMap, file)) {
-                        file = assetMap[file];
-                    }
                     grunt.verbose.writeln('Busted:', file);
                     return path.resolve((originalConfig.cwd ? originalConfig.cwd + path.sep : '') + file);
                 });

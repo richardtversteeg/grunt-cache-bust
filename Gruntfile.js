@@ -20,9 +20,6 @@ module.exports = function(grunt) {
 
     grunt.initConfig({
 
-        clean: {
-            tmp: 'tmp'
-        },
 
         jshint: {
             all: [
@@ -35,17 +32,6 @@ module.exports = function(grunt) {
             }
         },
 
-        copy: {
-            main: {
-                files: [{
-                    expand: true,
-                    dot: true,
-                    cwd: 'tests/',
-                    src: ['**', '!**/*_test.js'],
-                    dest: 'tmp/'
-                }]
-            }
-        },
 
         cacheBust: cacheBustObj,
 
@@ -73,5 +59,5 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', 'bust');
     grunt.registerTask('test', ['bust', 'nodeunit']);
-    grunt.registerTask('bust', ['jshint', 'clean', 'copy', 'cacheBust']);
+    grunt.registerTask('bust', ['jshint', 'cacheBust']);
 };
